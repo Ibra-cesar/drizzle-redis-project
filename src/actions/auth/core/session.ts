@@ -2,9 +2,10 @@ import { z } from "zod";
 import crypto from 'crypto'
 import { redisClient } from "../../../redis/redis";
 import { Response } from "express";
+import { COOKIES_SESSION_KEY } from "../../../config/env";
 
 const SESSION_EXPIRATION_SECOND = 60 * 60 * 24 * 7
-const COOKIE_SESSION_KEY = "custom-todo-backend-session-id"
+const COOKIE_SESSION_KEY = COOKIES_SESSION_KEY
 
 export const authSessionSchema = z.object({
     id: z.string()

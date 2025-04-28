@@ -7,7 +7,7 @@ import { generateSalt, passwordHasher } from "./core/passwordHasher";
 import { createUserSession } from "./core/session";
 import { Response } from "express";
 
-export async function singUp(uData: z.infer<typeof singUpSchema>, res: Response) {
+export async function singUp(uData: z.infer<typeof singUpSchema>, res:Response) {
   const { success, data } = singUpSchema.safeParse(uData);
 
   if (!success) return "Unable to create a new acount.";
@@ -34,7 +34,9 @@ export async function singUp(uData: z.infer<typeof singUpSchema>, res: Response)
 
     if (user == null) return "Unable to create user";
     await createUserSession(user, res)
+    return user
   } catch (error) {
     console.error("Unable to create user.", error);
+    return "Unable to create user."
   }
 }
