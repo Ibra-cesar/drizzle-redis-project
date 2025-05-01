@@ -3,10 +3,15 @@ import { db } from "../../drizzle/db";
 import { singInSchema, singUpSchema } from "./schema/authSchema";
 import { z } from "zod";
 import { userTable } from "../../drizzle/schema";
-import { comparePasswords, generateSalt, passwordHasher } from "./core/passwordHasher";
-import { createUserSession, removeUserSession } from "./core/session";
-import { Response } from "express";
-import { RequestWithCookies } from "../../config/types/express";
+import {
+  comparePasswords,
+  generateSalt,
+  passwordHasher,
+} from "./core/passwordHasher";
+import { createUserSession } from "./core/session";
+import { Response, Request } from "express";
+import { COOKIES_SESSION_KEY } from "../../config/env";
+import { redisClient } from "../../redis/redis";
 
 export async function singUp(
   uData: z.infer<typeof singUpSchema>,
@@ -38,7 +43,7 @@ export async function singUp(
 
     if (user == null) throw new Error("Unable to create user");
     await createUserSession(user, res);
-    return user;
+    return res.status(201).json({data: user});
   } catch (error) {
     console.error("Unable to create user.", error);
     throw new Error("Unable to create user.");
@@ -51,27 +56,61 @@ export async function signIn(
 ) {
   const { success, data } = singInSchema.safeParse(uData);
 
-  if (!success) throw new Error("Unable to Log-in.");
+  try {
+    if (!success) {
+      return res.status(401).json({ message: "Unable to Log-in." });
+    }
 
-  const user = await db.query.userTable.findFirst({
-    columns: { password: true, salt: true, id: true, email: true },
-    where: eq(userTable.email, data.email),
-  });
+    const user = await db.query.userTable.findFirst({
+      columns: { password: true, salt: true, id: true, email: true },
+      where: eq(userTable.email, data.email),
+    });
 
-  if (user == null || user.password == null || user.salt == null)
-    throw new Error("User is not found, invalid credentials.");
+    if (user == null || user.password == null || user.salt == null) {
+      return res
+        .status(401)
+        .json({ message: "User is not found, invalid credentials." });
+    }
 
-  const isCorrectPassword = await comparePasswords({
-    hashedPassword: user.password,
-    password: data.password,
-    salt: user.salt,
-  });
+    const isCorrectPassword = await comparePasswords({
+      hashedPassword: user.password,
+      password: data.password,
+      salt: user.salt,
+    });
 
-  if (!isCorrectPassword) throw new Error("Invalid Password.");
+    if (!isCorrectPassword) {
+      return res.status(401).json({ message: "Invalid Password." });
+    }
 
-  await createUserSession(user, res)
+    await createUserSession(user, res);
+    res.status(201).json({data: user})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
 }
 
-export async function signOut(req: RequestWithCookies, res: Response) {
-  await removeUserSession(req, res)
+export async function signOut(
+  req: Request,
+  res: Response
+) {
+  const sessionId = req.cookies[COOKIES_SESSION_KEY];
+     if (!sessionId) {
+       return res.status(200).json({ message: "No active session to log out." });
+     }
+  
+     try {
+      await redisClient.del(`session:${sessionId}`);
+  
+      res.clearCookie(COOKIES_SESSION_KEY, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: true
+      });
+  
+      return res.status(200).json({ message: "Successfully signed out." });
+    } catch (error) {
+      console.error("Logout failed:", error);
+      return res.status(500).json({ message: "Failed to sign out." });
+    }
 }
