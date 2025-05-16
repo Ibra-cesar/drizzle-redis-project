@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { COOKIES_SESSION_KEY } from "../../config/env";
-import { redisClient } from "../../redis/redis";
 import { db } from "../../drizzle/db";
 import { eq } from "drizzle-orm";
 import { userTable } from "../../drizzle/schema";
+import { getUserSessionId } from "../auth/core/session";
 
 interface AuthMiddleware extends Request {
   user?: {
@@ -17,31 +17,35 @@ export async function authMiddleware(
   req: AuthMiddleware,
   res: Response,
   next: NextFunction
-) {
-  const sessionId = req.cookies[COOKIES_SESSION_KEY];
+): Promise<void> {
+  const sessionId = req.cookies[COOKIES_SESSION_KEY] as string;
 
   if (!sessionId) {
     res.status(401).json({ message: "No active session found. Unauthorized." });
+    return;
   }
+  console.log("COOKIE SessionId:", sessionId)
 
   try {
     // Check if session ID exists in Redis
-    const sessionExists = await redisClient.get(`session:${sessionId}`);
+    const sessionExists = await getUserSessionId(sessionId);
+    console.log("Session data from redis", sessionExists);
 
     if (!sessionExists) {
       res.status(401).json({ message: "Session expired or invalid." });
+      return;
     }
 
     // Fetch the user info based on the session ID (you can get this from DB)
     const user = await db.query.userTable.findFirst({
-      where: eq(userTable.id, sessionId), // Or whatever field holds session ID
-      columns: { id: true, email: true, name: true },
+      where: eq(userTable.id, sessionExists.id), // Or whatever field holds session ID
     });
 
     if (!user) {
       res
         .status(401)
         .json({ message: "User not found or session is invalid." });
+      return;
     }
 
     // Attach user info to the request object (so that later middleware or handlers can access it)

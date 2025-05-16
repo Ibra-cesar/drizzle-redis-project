@@ -3,25 +3,22 @@ import { db } from "../../../drizzle/db";
 import { eq } from "drizzle-orm";
 import { userTable } from "../../../drizzle/schema";
 
-export async function getUser(req:Request, res:Response, next: NextFunction) {
+export async function getUser(req: Request, res:Response, next: NextFunction) {
     try {
         const users = await db.query.userTable.findMany()
         res.status(200).json({succes: true, data: users})
-        next()
     } catch (error) {
-        const errorMessage = new Error("No available users.")
-        res.status(401).json({message: errorMessage, error})
-        throw errorMessage
+        res.status(404).json({message: "No available user found.", error})
+        next(error)
     }
 }
 
-export async function getUserById(req: Request, res: Response, next: NextFunction){
+export async function getUserById(req: Request, res: Response, next: NextFunction):Promise<void>{
     try {
-        const userId = req.params.id
-        if(!userId){
-            const error = new Error("Missing User Id.")
-            res.status(401).json({message: error})
-            throw error
+        const { id } = req.params
+        if(!id){
+            res.status(401).json({message: "User Id is Missing."})
+            return;
         }
         const user = await db.query.userTable.findFirst({
             columns:{
@@ -30,19 +27,17 @@ export async function getUserById(req: Request, res: Response, next: NextFunctio
                 name:true,
                 createdAt: true,
             },
-            where: eq(userTable.id, userId)
+            where: eq(userTable.id, id)
         })
 
         if(!user){
-            const error = new Error("User is not found.");
-            res.status(401).json({ message: error });
-            throw error;
+            res.status(401).json({ message: "User Not Found." });
+            return;
         }
-        res.status(200).json(user)
+        res.status(200).json({succes: true, data: user})
     } catch (error) {
-        const errorMessage = new Error("Internal server error.");
-        res.status(500).json({ message: errorMessage, error });
-        throw error;
+        res.status(500).json({ message: "Internal Server Error.", error });
         next(error)
+        return;
     }
 }

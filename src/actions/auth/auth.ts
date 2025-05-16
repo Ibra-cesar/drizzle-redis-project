@@ -19,14 +19,16 @@ export async function singUp(
 ) {
   const { success, data } = singUpSchema.safeParse(uData);
 
-  if (!success) throw new Error("Unable to create a new acount.");
+  if (!success) return new Error("Unable to create a new acount.");
   //implement logic
 
   const existingUser = await db.query.userTable.findFirst({
     where: eq(userTable.email, data.email),
   });
 
-  if (existingUser != null) throw new Error("Email is already exist");
+  if (existingUser != null){
+    return new Error("Email is already exist");
+  } 
 
   try {
     const salt = generateSalt();
@@ -41,12 +43,12 @@ export async function singUp(
       })
       .returning({ id: userTable.id });
 
-    if (user == null) throw new Error("Unable to create user");
+    if (user == null) return new Error("Unable to create user");
     await createUserSession(user, res);
     return res.status(201).json({data: user});
   } catch (error) {
     console.error("Unable to create user.", error);
-    throw new Error("Unable to create user.");
+    return new Error("Unable to create user.");
   }
 }
 
@@ -62,7 +64,7 @@ export async function signIn(
     }
 
     const user = await db.query.userTable.findFirst({
-      columns: { password: true, salt: true, id: true, email: true },
+      columns: { name: true, password: true, salt: true, id: true, email: true },
       where: eq(userTable.email, data.email),
     });
 

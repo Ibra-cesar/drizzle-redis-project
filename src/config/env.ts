@@ -23,3 +23,4 @@ export const {
 } = process.env;
 
 export const COOKIES_SESSION_KEY = envVar("COOKIES_SESSION_KEY");
+export const ARCJET_KEY = envVar("ARCJET_KEY");
