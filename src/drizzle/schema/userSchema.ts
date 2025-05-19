@@ -1,6 +1,6 @@
 import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
-import { todoTable } from "./todosShema";
+import { recipesTable } from "./recipesShema";
 
 export const userTable = pgTable("user", {
   id: uuid().primaryKey().defaultRandom(),
@@ -16,5 +16,5 @@ export const userTable = pgTable("user", {
 });
 
 export const userRelation = relations(userTable, ({ many }) => ({
-  todos: many(todoTable),
+  todos: many(recipesTable),
 }));

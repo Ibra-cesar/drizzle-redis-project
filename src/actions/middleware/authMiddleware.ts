@@ -24,12 +24,10 @@ export async function authMiddleware(
     res.status(401).json({ message: "No active session found. Unauthorized." });
     return;
   }
-  console.log("COOKIE SessionId:", sessionId)
 
   try {
     // Check if session ID exists in Redis
     const sessionExists = await getUserSessionId(sessionId);
-    console.log("Session data from redis", sessionExists);
 
     if (!sessionExists) {
       res.status(401).json({ message: "Session expired or invalid." });
