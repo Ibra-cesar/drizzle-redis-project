@@ -24,3 +24,4 @@ export const {
 
 export const COOKIES_SESSION_KEY = envVar("COOKIES_SESSION_KEY");
 export const ARCJET_KEY = envVar("ARCJET_KEY");
+export const GOOGLE_GEMINI_API_KEY = envVar("GOOGLE_GEMINI_API_KEY");
