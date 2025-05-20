@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { userTable } from "../../drizzle/schema";
 import { getUserSessionId } from "../auth/core/session";
 
-interface AuthMiddleware extends Request {
+export interface AuthMiddleware extends Request {
   user?: {
     id: string;
     email: string;

@@ -3,9 +3,9 @@ import { signIn, signOut, singUp } from "../actions/auth/auth";
 
 const authRoutes = Router();
 
-authRoutes.post('/sing-up', async(req: Request, res: Response) => {
+authRoutes.post('/sign-up', async(req: Request, res: Response) => {
         const result = await singUp(req.body, res);
-        res.status(201).json({message: result})
+        res.status(201).json({data: result})
 })
 
 authRoutes.post('/sing-in', async(req: Request, res: Response) => {

@@ -29,8 +29,6 @@
     "typescript-eslint": "^8.30.1"
   },
   "dependencies": {
-    "@arcjet/inspect": "^1.0.0-beta.6",
-    "@arcjet/node": "^1.0.0-beta.6",
     "@google/genai": "^0.15.0",
     "@upstash/redis": "^1.34.8",
     "cookie-parser": "^1.4.7",
