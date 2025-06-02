@@ -1,17 +1,10 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import { COOKIES_SESSION_KEY } from "../../config/env";
 import { db } from "../../drizzle/db";
 import { eq } from "drizzle-orm";
 import { userTable } from "../../drizzle/schema";
 import { getUserSessionId } from "../auth/core/session";
-
-export interface AuthMiddleware extends Request {
-  user?: {
-    id: string;
-    email: string;
-    name: string;
-  };
-}
+import { AuthMiddleware } from "../../config/types";
 
 export async function authMiddleware(
   req: AuthMiddleware,

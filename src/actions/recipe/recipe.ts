@@ -3,8 +3,8 @@ import { recipeSchema, resultRecipe } from "./recipeSchema";
 import { geminiRecipe } from "../../config/googleAi";
 import { db } from "../../drizzle/db";
 import { recipesTable } from "../../drizzle/schema";
-import { AuthMiddleware } from "../middleware/authMiddleware";
 import { and, eq } from "drizzle-orm";
+import { AuthMiddleware } from "../../config/types";
 
 export async function createRecipe(req: AuthMiddleware, res: Response) {
   try {

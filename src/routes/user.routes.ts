@@ -1,21 +1,31 @@
-import { Request, Response, Router } from "express";
-import { getUser, getUserById } from "../actions/auth/author/authorizeUser";
+import { Router } from "express";
+import { deleteUser, getUser, getUserById } from "../actions/auth/author/authorizeUser";
 import { authMiddleware } from "../actions/middleware/authMiddleware";
+import { rateLimiter } from "../actions/middleware/rateLimiter";
 
-const usersRoutes = Router()
+const usersRoutes = Router();
 
-usersRoutes.get('/',authMiddleware, getUser)
+usersRoutes.get(
+  "/",
+  rateLimiter({
+    endpoint: "all-users",
+    rate_limit: { limit: 20, window: 60 },
+    useUserId: true,
+  }),
+  authMiddleware,
+  getUser
+);
 
-usersRoutes.get('/:id',authMiddleware, getUserById) 
-
-usersRoutes.post('/', (req: Request, res: Response) => {
-    res.send({message: "CREATE new users"})
-})
-usersRoutes.put('/:id', (req: Request, res: Response) => {
-    res.send({message: "UPDATE a users"})
-})
-usersRoutes.delete('/:id', (req: Request, res: Response) => {
-    res.send({message: "DELETE a users"})
-})
+usersRoutes.get(
+  "/:id",
+  rateLimiter({
+    endpoint: "user-by-id",
+    rate_limit: { limit: 20, window: 60 },
+    useUserId: true,
+  }),
+  authMiddleware,
+  getUserById
+);
+usersRoutes.delete("/:id", authMiddleware, deleteUser);
 
 export default usersRoutes;

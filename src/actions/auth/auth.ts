@@ -102,6 +102,10 @@ export async function signOut(
      }
   
      try {
+      const sessionExist = await redisClient.exists(`session:${sessionId}`)
+      if(!sessionExist){
+        return res.status(200).json({message: "Session already expired."})
+      }
       await redisClient.del(`session:${sessionId}`);
   
       res.clearCookie(COOKIES_SESSION_KEY, {
