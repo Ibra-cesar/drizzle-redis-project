@@ -6,20 +6,18 @@ import { COOKIES_SESSION_KEY } from "../../../config/env";
 import { redisClient } from "../../../redis/redis";
 import { AuthMiddleware } from "../../../config/types";
 
-export async function getUser(req: Request, res: Response, next: NextFunction) {
+export async function getUser(req: Request, res: Response) {
   try {
     const users = await db.query.userTable.findMany();
     res.status(200).json({ succes: true, data: users });
   } catch (error) {
     res.status(404).json({ message: "No available user found.", error });
-    next(error);
   }
 }
 
 export async function getUserById(
   req: AuthMiddleware,
   res: Response,
-  next: NextFunction
 ): Promise<void> {
   try {
     const userId = req.user?.id;
@@ -41,10 +39,9 @@ export async function getUserById(
       res.status(401).json({ message: "User Not Found." });
       return;
     }
-    res.status(200).json({ succes: true, data: user });
+    res.status(200).json({ success: true, data: user });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error.", error });
-    next(error);
     return;
   }
 }

@@ -19,16 +19,21 @@ export async function singUp(
 ) {
   const { success, data } = singUpSchema.safeParse(uData);
 
-  if (!success) return new Error("Unable to create a new acount.");
+  if (!success)
+    return res
+      .status(400)
+      .json({ message: "Unable to create a new acount.", success: false });
   //implement logic
 
   const existingUser = await db.query.userTable.findFirst({
     where: eq(userTable.email, data.email),
   });
 
-  if (existingUser != null){
-    return new Error("Email is already exist");
-  } 
+  if (existingUser != null) {
+    return res
+      .status(401)
+      .json({ message: "Email is already exist", success: false });
+  }
 
   try {
     const salt = generateSalt();
@@ -43,12 +48,18 @@ export async function singUp(
       })
       .returning({ id: userTable.id });
 
-    if (user == null) return new Error("Unable to create user");
+    if (user == null)
+      return res
+        .status(400)
+        .json({ message: "Unable to create new user.", success: false });
+
     await createUserSession(user, res);
-    return res.status(201).json({data: user});
+    return res.status(201).json({ data: user, success: true });
   } catch (error) {
     console.error("Unable to create user.", error);
-    return new Error("Unable to create user.");
+    return res
+      .status(500)
+      .json({ message: "Unable to create new user.", success: false });
   }
 }
 
@@ -64,7 +75,13 @@ export async function signIn(
     }
 
     const user = await db.query.userTable.findFirst({
-      columns: { name: true, password: true, salt: true, id: true, email: true },
+      columns: {
+        name: true,
+        password: true,
+        salt: true,
+        id: true,
+        email: true,
+      },
       where: eq(userTable.email, data.email),
     });
 
@@ -85,38 +102,35 @@ export async function signIn(
     }
 
     await createUserSession(user, res);
-    res.status(201).json({data: user})
+    res.status(201).json({ data: user });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal server error." });
   }
 }
 
-export async function signOut(
-  req: Request,
-  res: Response
-) {
+export async function signOut(req: Request, res: Response) {
   const sessionId = req.cookies[COOKIES_SESSION_KEY];
-     if (!sessionId) {
-       return res.status(200).json({ message: "No active session to log out." });
-     }
-  
-     try {
-      const sessionExist = await redisClient.exists(`session:${sessionId}`)
-      if(!sessionExist){
-        return res.status(200).json({message: "Session already expired."})
-      }
-      await redisClient.del(`session:${sessionId}`);
-  
-      res.clearCookie(COOKIES_SESSION_KEY, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: true
-      });
-  
-      return res.status(200).json({ message: "Successfully signed out." });
-    } catch (error) {
-      console.error("Logout failed:", error);
-      return res.status(500).json({ message: "Failed to sign out." });
+  if (!sessionId) {
+    return res.status(200).json({ message: "No active session to log out." });
+  }
+
+  try {
+    const sessionExist = await redisClient.exists(`session:${sessionId}`);
+    if (!sessionExist) {
+      return res.status(200).json({ message: "Session already expired." });
     }
+    await redisClient.del(`session:${sessionId}`);
+
+    res.clearCookie(COOKIES_SESSION_KEY, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: true,
+    });
+
+    return res.status(200).json({ message: "Successfully signed out." });
+  } catch (error) {
+    console.error("Logout failed:", error);
+    return res.status(500).json({ message: "Failed to sign out." });
+  }
 }

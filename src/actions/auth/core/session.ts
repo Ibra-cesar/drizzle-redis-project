@@ -40,12 +40,21 @@ export function getUserInfo(req: Request) {
 }
 
 export async function getUserSessionId(sessionId: string) {
-  const rawUser = await redisClient.get(`session:${sessionId}`);
+  try {
+    const rawUser = await Promise.race([
+      redisClient.get(`session:${sessionId}`),
+      new Promise((_, reject) =>
+        setTimeout(() => reject("Redis Timeout"), 2000)
+      ),
+    ]);
 
-  if (!rawUser) return null;
+    if (!rawUser) return null;
 
-  const { success, data: user } = authSessionSchema.safeParse(rawUser);
-  if (!success) return null;
-
-  return user;
+    const { success, data: user } = authSessionSchema.safeParse(rawUser);
+    return success ? user :  null;
+  } catch (error) {
+    console.error("Session retrieval failed:", error);
+    return null;
+  }
+ 
 }

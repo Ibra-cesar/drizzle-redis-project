@@ -12,8 +12,7 @@ authRoutes.post(
     useUserId: false,
   }),
   async (req: Request, res: Response) => {
-    const result = await singUp(req.body, res);
-    res.status(201).json({ data: result });
+    await singUp(req.body, res);
   }
 );
 
@@ -25,13 +24,11 @@ authRoutes.post(
     useUserId: false,
   }),
   async (req: Request, res: Response) => {
-    const result = await signIn(req.body, res);
-    res.status(200).json({ mesage: result });
+    await signIn(req.body, res);
   }
 );
 authRoutes.post("/sign-out", async (req: Request, res: Response) => {
-  const result = await signOut(req, res);
-  res.status(200).json({ message: result });
+  await signOut(req, res);
 });
 
 export default authRoutes;
