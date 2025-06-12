@@ -24,7 +24,7 @@ export async function createUserSession(user: Session, res: Response) {
   );
 
   res.cookie(COOKIE_SESSION_KEY, sessionId, {
-    secure: true,
+    secure: false,
     httpOnly: true,
     sameSite: "lax",
     expires: new Date(Date.now() + SESSION_EXPIRATION_SECOND * 1000),
@@ -41,12 +41,7 @@ export function getUserInfo(req: Request) {
 
 export async function getUserSessionId(sessionId: string) {
   try {
-    const rawUser = await Promise.race([
-      redisClient.get(`session:${sessionId}`),
-      new Promise((_, reject) =>
-        setTimeout(() => reject("Redis Timeout"), 2000)
-      ),
-    ]);
+    const rawUser = await redisClient.get(`session:${sessionId}`)
 
     if (!rawUser) return null;
 

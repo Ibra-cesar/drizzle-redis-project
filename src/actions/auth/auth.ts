@@ -17,6 +17,7 @@ export async function singUp(
   uData: z.infer<typeof singUpSchema>,
   res: Response
 ) {
+  console.log("Received sign-up request:", uData);
   const { success, data } = singUpSchema.safeParse(uData);
 
   if (!success)
@@ -46,7 +47,7 @@ export async function singUp(
         password: hash,
         salt,
       })
-      .returning({ id: userTable.id });
+      .returning({ id: userTable.id, name: userTable.name, email: userTable.email });
 
     if (user == null)
       return res
@@ -125,7 +126,6 @@ export async function signOut(req: Request, res: Response) {
     res.clearCookie(COOKIES_SESSION_KEY, {
       httpOnly: true,
       sameSite: "lax",
-      secure: true,
     });
 
     return res.status(200).json({ message: "Successfully signed out." });

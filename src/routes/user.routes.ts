@@ -1,6 +1,7 @@
 import { Response, Router } from "express";
 import {
   deleteUser,
+  getCurrentUser,
   getUser,
   getUserById,
 } from "../actions/auth/author/authorizeUser";
@@ -43,7 +44,7 @@ usersRoutes.get(
         success: false,
       });
     }
-    await getUserById(req, res);
+    await getCurrentUser(req, res);
   }
 );
 

@@ -60,6 +60,8 @@ export const rateLimiter = (rule: RateLimitRules) => {
         });
         return
       }
+
+      next()
     } catch (error) {
       res
         .status(500)

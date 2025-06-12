@@ -49,12 +49,18 @@ export async function createRecipe(req: AuthMiddleware, res: Response) {
       .insert(recipesTable)
       .values({
         userId: userId, // Ensure userId is always a string
-        tittle: result.title,
+        title: result.title,
         ingredients: result.ingredients,
         instruction: result.instructions,
         description: result.description,
       })
-      .returning({ id: recipesTable.id });
+      .returning({
+        id: recipesTable.id,
+        title: recipesTable.title,
+        description: recipesTable.description,
+        ingredients: recipesTable.ingredients,
+        instruction: recipesTable.instruction,
+      });
     return res
       .status(201)
       .json({ message: "Recipe created successfully", data: completeRecipe });
@@ -74,6 +80,13 @@ export async function getAllRecipe(req: AuthMiddleware, res: Response) {
   try {
     const recipe = await db.query.recipesTable.findMany({
       where: eq(recipesTable.userId, userId),
+      columns: {
+        id: true,
+        title: true ,
+        description: true,
+        ingredients: true,
+        instruction: true,
+      }
     });
     return res.status(200).json({ data: recipe });
   } catch (error) {
@@ -95,7 +108,7 @@ export async function getRecipeById(req: AuthMiddleware, res: Response) {
   try {
     const recipeById = await db.query.recipesTable.findFirst({
       columns: {
-        tittle: true,
+        title: true,
         description: true,
         ingredients: true,
         instruction: true,
@@ -128,7 +141,7 @@ export async function deleteRecipe(req: AuthMiddleware, res: Response) {
     const [deletedRecipe] = await db
       .delete(recipesTable)
       .where(and(eq(recipesTable.userId, userId), eq(recipesTable.id, id)))
-      .returning({ title: recipesTable.tittle });
+      .returning({ title: recipesTable.title });
 
     return res
       .status(200)

@@ -5,6 +5,7 @@ import { userTable } from "../../../drizzle/schema";
 import { COOKIES_SESSION_KEY } from "../../../config/env";
 import { redisClient } from "../../../redis/redis";
 import { AuthMiddleware } from "../../../config/types";
+import { getUserSessionId } from "../core/session";
 
 export async function getUser(req: Request, res: Response) {
   try {
@@ -17,7 +18,7 @@ export async function getUser(req: Request, res: Response) {
 
 export async function getUserById(
   req: AuthMiddleware,
-  res: Response,
+  res: Response
 ): Promise<void> {
   try {
     const userId = req.user?.id;
@@ -30,7 +31,6 @@ export async function getUserById(
         id: true,
         email: true,
         name: true,
-        createdAt: true,
       },
       where: eq(userTable.id, userId),
     });
@@ -87,6 +87,47 @@ export async function deleteUser(
     res
       .status(500)
       .json({ message: "Failed to delete acount ", error, success: false });
+    return;
+  }
+}
+
+export async function getCurrentUser(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const sessionId = req.cookies[COOKIES_SESSION_KEY];
+
+    if (!sessionId) {
+      res.status(401).json({ message: "Unauthorized", success: false });
+      return;
+    }
+
+    const session = await getUserSessionId(sessionId);
+    if (!session) {
+      res.status(401).json({ message: "Session expired", success: false });
+      return;
+    }
+
+    const user = await db.query.userTable.findFirst({
+      columns: {
+        id: true,
+        email: true,
+        name: true,
+      },
+      where: eq(userTable.id, session.id),
+    });
+    if (!user) {
+      res.status(404).json({ message: "User not found", success: false });
+      return;
+    }
+    res.status(200).json({
+      data: { id: user.id, name: user.name, email: user.email },
+      success: true,
+    });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ message: "Internal server error", success: false });
     return;
   }
 }

@@ -5,14 +5,13 @@ import usersRoutes from "./routes/user.routes";
 import cookieParser from "cookie-parser";
 import recipesRoutes from "./routes/recipe.routes";
 import { monitoringRoutes } from "./routes/monitoring.routes";
-import cors from "cors"
+import cors from "cors";
 
 const app = express();
 const port = APP_PORT;
 
 app.use(cors({
-  origin: "http://localhost:5173",
-  methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
+  origin: 'http://localhost:5173',
   credentials: true
 }))
 
