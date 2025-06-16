@@ -12,7 +12,7 @@ export async function getUser(req: Request, res: Response) {
     const users = await db.query.userTable.findMany();
     res.status(200).json({ succes: true, data: users });
   } catch (error) {
-    res.status(404).json({ message: "No available user found.", error });
+    res.status(404).json({ message: "No available user found.", error, success:false });
   }
 }
 
@@ -36,12 +36,12 @@ export async function getUserById(
     });
 
     if (!user) {
-      res.status(401).json({ message: "User Not Found." });
+      res.status(401).json({ message: "User Not Found.", success:false });
       return;
     }
     res.status(200).json({ success: true, data: user });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error.", error });
+    res.status(500).json({ message: "Internal Server Error.", error, success:false });
     return;
   }
 }
@@ -60,7 +60,7 @@ export async function deleteUser(
 
   const sessionId = req.cookies[COOKIES_SESSION_KEY];
   if (!sessionId) {
-    res.status(200).json({ message: "No active session to log out." });
+    res.status(200).json({ message: "No active session to log out.",success:false });
     return;
   }
 

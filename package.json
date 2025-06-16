@@ -1,12 +1,12 @@
 {
   "name": "todos-back",
   "version": "1.0.0",
-  "main": "index.js",
-  "type": "module",
+  "main": "dist/src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node --import=tsx --watch src/index.ts",
     "build": "tsc",
+    "start": "node dist/src/index.js",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -31,7 +31,7 @@
     "typescript-eslint": "^8.30.1"
   },
   "dependencies": {
-    "@google/genai": "^0.15.0",
+    "@google/genai": "^1.5.1",
     "@upstash/redis": "^1.34.8",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

@@ -47,7 +47,11 @@ export async function singUp(
         password: hash,
         salt,
       })
-      .returning({ id: userTable.id, name: userTable.name, email: userTable.email });
+      .returning({
+        id: userTable.id,
+        name: userTable.name,
+        email: userTable.email,
+      });
 
     if (user == null)
       return res
@@ -72,7 +76,9 @@ export async function signIn(
 
   try {
     if (!success) {
-      return res.status(401).json({ message: "Unable to Log-in." });
+      return res
+        .status(401)
+        .json({ message: "Unable to Log-in.", success: false });
     }
 
     const user = await db.query.userTable.findFirst({
@@ -89,7 +95,10 @@ export async function signIn(
     if (user == null || user.password == null || user.salt == null) {
       return res
         .status(401)
-        .json({ message: "User is not found, invalid credentials." });
+        .json({
+          message: "User is not found, invalid credentials.",
+          success: false,
+        });
     }
 
     const isCorrectPassword = await comparePasswords({
@@ -99,27 +108,35 @@ export async function signIn(
     });
 
     if (!isCorrectPassword) {
-      return res.status(401).json({ message: "Invalid Password." });
+      return res
+        .status(401)
+        .json({ message: "Invalid Password.", success: false });
     }
 
     await createUserSession(user, res);
-    res.status(201).json({ data: user });
+    res.status(201).json({ data: user, success: true });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: "Internal server error." });
+    return res
+      .status(500)
+      .json({ message: "Internal server error.", success: false });
   }
 }
 
 export async function signOut(req: Request, res: Response) {
   const sessionId = req.cookies[COOKIES_SESSION_KEY];
   if (!sessionId) {
-    return res.status(200).json({ message: "No active session to log out." });
+    return res
+      .status(200)
+      .json({ message: "No active session to log out.", success: false });
   }
 
   try {
     const sessionExist = await redisClient.exists(`session:${sessionId}`);
     if (!sessionExist) {
-      return res.status(200).json({ message: "Session already expired." });
+      return res
+        .status(200)
+        .json({ message: "Session already expired.", success: false });
     }
     await redisClient.del(`session:${sessionId}`);
 
@@ -128,9 +145,13 @@ export async function signOut(req: Request, res: Response) {
       sameSite: "lax",
     });
 
-    return res.status(200).json({ message: "Successfully signed out." });
+    return res
+      .status(200)
+      .json({ message: "Successfully signed out.", success: true });
   } catch (error) {
     console.error("Logout failed:", error);
-    return res.status(500).json({ message: "Failed to sign out." });
+    return res
+      .status(500)
+      .json({ message: "Failed to sign out.", success: false });
   }
 }

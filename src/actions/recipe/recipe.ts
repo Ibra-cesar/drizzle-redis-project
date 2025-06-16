@@ -21,7 +21,7 @@ export async function createRecipe(req: AuthMiddleware, res: Response) {
     const parsed = recipeSchema.safeParse(req.body);
 
     if (!parsed.success) {
-      return res.status(400).json({ message: parsed.error });
+      return res.status(400).json({ message: parsed.error,success:false });
     }
     //if success grab ingredient from zod and normalize to string :D O=>
     const { ingredients } = parsed.data;
@@ -31,7 +31,7 @@ export async function createRecipe(req: AuthMiddleware, res: Response) {
     if ("success" in recipe && recipe.success === false) {
       return res
         .status(500)
-        .json({ message: recipe.message, error: recipe.errorDetail });
+        .json({ message: recipe.message, error: recipe.errorDetail, success:false });
     }
     //parsed the recipe to zod object.
     const fullRecipe = resultRecipe.safeParse(recipe);
@@ -40,6 +40,7 @@ export async function createRecipe(req: AuthMiddleware, res: Response) {
       return res.status(400).json({
         message: "Response is not valid",
         error: fullRecipe.error.format(),
+        success:false
       });
     //if succes grab the result P_P
     const result = fullRecipe.data;
@@ -63,19 +64,19 @@ export async function createRecipe(req: AuthMiddleware, res: Response) {
       });
     return res
       .status(201)
-      .json({ message: "Recipe created successfully", data: completeRecipe });
+      .json({ message: "Recipe created successfully", data: completeRecipe, success:true });
   } catch (error) {
     console.error("Recipe Maker Failed", error);
     return res
       .status(500)
-      .json({ message: "Failed to make recipe, internal server error" });
+      .json({ message: "Failed to make recipe, internal server error", success:false });
   }
 }
 export async function getAllRecipe(req: AuthMiddleware, res: Response) {
   const userId = req.user?.id;
 
   if (!userId) {
-    return res.status(401).json({ message: "User is unauthenticated." });
+    return res.status(401).json({ message: "User is unauthenticated.", success:false });
   }
   try {
     const recipe = await db.query.recipesTable.findMany({
@@ -88,9 +89,9 @@ export async function getAllRecipe(req: AuthMiddleware, res: Response) {
         instruction: true,
       }
     });
-    return res.status(200).json({ data: recipe });
+    return res.status(200).json({ data: recipe, success:true });
   } catch (error) {
-    return res.status(404).json({ message: "Recipe is not found", error });
+    return res.status(404).json({ message: "Recipe is not found", error, success:false });
   }
 }
 export async function getRecipeById(req: AuthMiddleware, res: Response) {
@@ -98,11 +99,11 @@ export async function getRecipeById(req: AuthMiddleware, res: Response) {
   const { id } = req.params;
 
   if (!userId) {
-    return res.status(401).json({ message: "User is not Authenticated." });
+    return res.status(401).json({ message: "User is not Authenticated.", success:false });
   }
 
   if (!id) {
-    return res.status(400).json({ message: "Recipe ID is required." });
+    return res.status(400).json({ message: "Recipe ID is required.", success:false });
   }
 
   try {
@@ -118,7 +119,7 @@ export async function getRecipeById(req: AuthMiddleware, res: Response) {
     if (!recipeById) {
       return res.status(404).json({ message: "Recipe is not found." });
     }
-    return res.status(200).json({ data: recipeById });
+    return res.status(200).json({ data: recipeById, success:true });
   } catch (error) {
     return res
       .status(500)
@@ -130,11 +131,11 @@ export async function deleteRecipe(req: AuthMiddleware, res: Response) {
   const { id } = req.params;
 
   if (!userId) {
-    return res.status(401).json({ message: "User is not Authenticated." });
+    return res.status(401).json({ message: "User is not Authenticated.", success:false });
   }
 
   if (!id) {
-    return res.status(400).json({ message: "Recipe ID is required." });
+    return res.status(400).json({ message: "Recipe ID is required.", success:false });
   }
 
   try {

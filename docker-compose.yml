@@ -1,8 +1,18 @@
 services:
-  db:
-    image: postgres:latest
+  app:
+    build:
+      dockerfile: Dockerfile
+    container_name: chefai-backend
     restart: always
-    hostname: localhost
+    env_file:
+      - .env
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+  db:
+    image: postgres:17
+    restart: always
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}

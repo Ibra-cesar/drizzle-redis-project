@@ -14,7 +14,7 @@ export async function authMiddleware(
   const sessionId = req.cookies[COOKIES_SESSION_KEY] as string;
 
   if (!sessionId) {
-    res.status(401).json({ message: "No active session found. Unauthorized." });
+    res.status(401).json({ message: "No active session found. Unauthorized.",success:false });
     return;
   }
 
@@ -23,7 +23,7 @@ export async function authMiddleware(
     const sessionExists = await getUserSessionId(sessionId);
 
     if (!sessionExists) {
-      res.status(401).json({ message: "Session expired or invalid." });
+      res.status(401).json({ message: "Session expired or invalid.",success:false });
       return;
     }
 
@@ -35,7 +35,7 @@ export async function authMiddleware(
     if (!user) {
       res
         .status(401)
-        .json({ message: "User not found or session is invalid." });
+        .json({ message: "User not found or session is invalid.",success:false });
       return;
     }
 
@@ -47,6 +47,6 @@ export async function authMiddleware(
     console.error("Auth middleware error:", error);
     res
       .status(500)
-      .json({ message: "Internal server error in authentication." });
+      .json({ message: "Internal server error in authentication.", success:false });
   }
 }

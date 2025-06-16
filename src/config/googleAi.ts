@@ -10,7 +10,9 @@ interface Recipe {
   instructions: string[];
 }
 
-export async function geminiRecipe(ingredients: string): Promise<Recipe | { success: false; message: string; errorDetail: string }> {
+export async function geminiRecipe(
+  ingredients: string
+): Promise<Recipe | { success: false; message: string; errorDetail: string }> {
   // Added a return type for clarity, adjust as needed
   const prompt = `
   Generate a cheap and creative recipe using ONLY the following ingredients: ${ingredients}.
@@ -33,13 +35,14 @@ export async function geminiRecipe(ingredients: string): Promise<Recipe | { succ
         responseMimeType: "application/json",
       },
     });
-    const responseText = generationResult.candidates?.[0]?.content?.parts?.[0]?.text;
+    const responseText =
+      generationResult.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!responseText) {
       console.error(
         "Error: No text content in Gemini response",
         JSON.stringify(generationResult, null, 2)
-      ); 
+      );
       // Return a structured error object or throw an error, matching controller's expectations
       return {
         success: false,
