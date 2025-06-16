@@ -1,0 +1,38 @@
+name: Deploy Ec2
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+        - name: Setup Node
+          uses: actions/setup-node@v4
+          with:
+            node-version: '22'
+
+        - name: Dependencies Instalation
+          run: npm install
+
+        - name: EC2 Deployment amazon-linux 2023
+          uses: appleboy/ssh-action@v1.0.3
+          with:
+            host: ${{ secrets.EC2_HOST }}
+            username: ${{ secrets.EC2_USER }}
+            key: ${{ secrets.EC2_SSH_KEY }}
+            port: 22
+            script: |
+                cd /home/ec2-user/drizzle-redis-project
+                git pull origin main
+                npm install --production
+                pm2 restart all
+                docker-compose down
+                docker-compose build --no-cache
+                docker-compose up -d
