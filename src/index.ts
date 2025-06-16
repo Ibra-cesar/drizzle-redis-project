@@ -10,10 +10,12 @@ import cors from "cors";
 const app = express();
 const port = APP_PORT;
 
-app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true
-}))
+app.use(
+  cors({
+    origin: "https://chef-ai-pied.vercel.app",
+    credentials: true,
+  })
+);
 
 app.use(cookieParser())
 app.use(express.json())
