@@ -5,7 +5,7 @@ import { userTable } from "../../../drizzle/schema";
 import { COOKIES_SESSION_KEY } from "../../../config/env";
 import { redisClient } from "../../../redis/redis";
 import { AuthMiddleware } from "../../../config/types";
-import { getUserSessionId } from "../core/session";
+import { getCachedProfile, getUserSessionId } from "../core/session";
 
 export async function getUser(req: Request, res: Response) {
   try {
@@ -26,14 +26,7 @@ export async function getUserById(
       res.status(401).json({ message: "User Id is Missing.", success: false });
       return;
     }
-    const user = await db.query.userTable.findFirst({
-      columns: {
-        id: true,
-        email: true,
-        name: true,
-      },
-      where: eq(userTable.id, userId),
-    });
+    const user = await getCachedProfile(userId)
 
     if (!user) {
       res.status(401).json({ message: "User Not Found.", success:false });
@@ -108,21 +101,13 @@ export async function getCurrentUser(
       res.status(401).json({ message: "Session expired", success: false });
       return;
     }
-
-    const user = await db.query.userTable.findFirst({
-      columns: {
-        id: true,
-        email: true,
-        name: true,
-      },
-      where: eq(userTable.id, session.id),
-    });
+    const user = await getCachedProfile(session.id)
     if (!user) {
       res.status(404).json({ message: "User not found", success: false });
       return;
     }
     res.status(200).json({
-      data: { id: user.id, name: user.name, email: user.email },
+      data: user,
       success: true,
     });
   } catch (error) {
