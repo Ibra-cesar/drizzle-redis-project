@@ -34,9 +34,9 @@ export async function createUserSession(user: Session, res: Response) {
   );
 
   res.cookie(COOKIE_SESSION_KEY, sessionId, {
-    secure: false,
+    secure: true,
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "none",
     expires: new Date(Date.now() + SESSION_EXPIRATION_SECOND * 1000),
   });
 }
